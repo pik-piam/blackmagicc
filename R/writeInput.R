@@ -28,7 +28,7 @@ writeInput <- function(inputEmissions, rawInput_dir) {
 
     cat("---- METADATA ----\n",                                       file = fn, sep = " ", append = T)
     cat("\n",                                                         file = fn, sep = " ", append = T)
-    cat("Source: PIK,", format(Sys.time()), "\n",                     file = fn, sep = " ", append = T) #TODO if these files are eventually kept, it would be helpful to have a better source here.
+    cat("Source: PIK,", format(Sys.time()), "\n",                     file = fn, sep = " ", append = T) # TODO if these files are eventually kept, it would be helpful to have a better source here.
     cat("\n",                                                         file = fn, sep = " ", append = T)
     cat("&THISFILE_SPECIFICATIONS\n",                                 file = fn, sep = " ", append = T)
     cat(c("THISFILE_DATACOLUMNS =", dim(gases)[[1]] - 1, "\n"),       file = fn, sep = " ", append = T) # off-by-one error

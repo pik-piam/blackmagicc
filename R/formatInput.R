@@ -27,9 +27,9 @@ formatInput <- function(remindEmissions_path, magpiemif_path) {
 
     # Both .RDS and .mif formats are acceptable
     if (str_detect(string = remindEmissions_path, pattern = ".RDS")) {
-        remind <- readRDS(remindEmissions_path)
+        remind <- readRDS(remindEmissions_path) # This will read in a magpie object, which at the moment will break.
     } else {
-        remind <- read.csv(remindEmissions_path, header = TRUE, sep = ';', stringsAsFactors = FALSE)
+        remind <- read.csv(remindEmissions_path, header = TRUE, sep = ';', stringsAsFactors = FALSE) # USE READ_REPORT rather than .csv
     }
 
 # TODO Only run all this stuff if the emissions haven't been already cleaned ...
@@ -155,8 +155,7 @@ formatInput <- function(remindEmissions_path, magpiemif_path) {
     magpie <- magpie %>%
         mutate(Variable = str_extract(string = Unit, pattern = "(?<=\\s)(.+)(?=/)"))
 
-    .convertMAgPIEUnits <- function(.variable, .unit, .value)
-    {
+    .convertMAgPIEUnits <- function(.variable, .unit, .value) {
         # TODO Error-checking, make sure that the units are consistent with expectations
         if (.variable == "CO2") {
             .variable <- "CO2B"
@@ -190,6 +189,11 @@ formatInput <- function(remindEmissions_path, magpiemif_path) {
         mutate(Unit = str_replace(string = Unit, pattern = " ", replacement = "_"),
                Unit = str_replace(string = Unit, pattern = "/", replacement = "_per_"))
 
+    if (length(unique(remind$Scenario)) > 1 | length(unique(magpie$Scenario)) > 1) {
+        stop("blackmagicc::formatInput was called on a report containing more than one scenario.\n
+              This function should only be called on original reports, not merged reports.")
+    }
+    
     scenario <- paste0(unique(remind$Scenario), "__", unique(magpie$Scenario))
 
     all <- all %>%
@@ -205,5 +209,4 @@ formatInput <- function(remindEmissions_path, magpiemif_path) {
     all <- all %>% filter(Year > 2014)
 
     return(all)
-
 }
