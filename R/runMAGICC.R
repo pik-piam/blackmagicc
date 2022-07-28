@@ -15,8 +15,8 @@
 #'     x <- runMAGICC(emissions_fn, base_path)
 #'   }
 
-runMAGICC <- function(emissions_fn, base_path)
-{
+runMAGICC <- function(emissions_fn, base_path) {
+
     rawInput_dir  <- file.path(base_path, "raw", "input")
     rawOutput_dir <- file.path(base_path, "raw", "output")
     magiccBin_dir <- file.path(base_path, "magicc-v7.5.3", "bin")
@@ -66,4 +66,5 @@ runMAGICC <- function(emissions_fn, base_path)
 
     # TODO As of now the PARAMETERS output file is not requested, though it can be useful for debugging. Future
     # iterations may want to include these files optionally.
+    
 }

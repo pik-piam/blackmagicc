@@ -15,6 +15,7 @@
 #'   }
 
 writeInput <- function(inputEmissions, rawInput_dir) {
+    
     gases <- colnames(inputEmissions)[5:length(colnames(inputEmissions))] %>%
         str_split(pattern = " ", simplify = TRUE)
 
@@ -50,4 +51,5 @@ writeInput <- function(inputEmissions, rawInput_dir) {
     cat(c("YEARS", rep("WORLD", length(gases[,1]) - 1),  "\n"),       file = fn, sep = " ", append = T)
 
     write_delim(inputEmissions[, 4:length(inputEmissions)], col_names = FALSE, file = fn, append = T, delim = " ")
+    
 }

@@ -39,6 +39,10 @@ formatOutput <- function(rawOutput_dir, yearsToKeep) {
         select(REMIND, MAgPIE, YEARS, GLOBAL) %>%
         rename(Year = YEARS)
 
+    if (length(unique(out$REMIND)) != 1) {
+        stop("At this time, blackmagicc is configured to only process one REMIND scenario per MAgPIE scenario.")
+    }
+
     # From MAGCFG_NMLYEARS.CFG:
     #   ! MAGICC does strange things in the last year of the run
     #   ! so we recommend running 5 years more than needed and
@@ -51,7 +55,7 @@ formatOutput <- function(rawOutput_dir, yearsToKeep) {
     # Format for .mif
     out <- out %>%
         mutate(Model = "MAgPIE",
-               Scenario = paste0(MAgPIE, "--", REMIND),
+               Scenario = MAgPIE,
                Region = "GLO",
                Variable = "GlobalSurfaceTemperature",
                Unit = "C") %>%

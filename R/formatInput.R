@@ -3,7 +3,7 @@
 #' necessary to run MAGICC7
 #' @author Michael Crawford
 #'
-#' @param remindEmissions_path file path for the reference REMIND emissions
+#' @param remindmif_path file path for the reference REMIND emissions
 #' @param magpiemif_path file path for the MAgPIE emissions
 #'
 #' @return a composite data.frame containing the scenario's MAgPIE emissions and reference REMIND emissions
@@ -16,24 +16,17 @@
 #'
 #' @examples
 #'   \dontrun{
-#'     x <- formatInput(magpiemif_path, remindEmissions_path)
+#'     x <- formatInput(remindmif_path, magpiemif_path)
 #'   }
 
-formatInput <- function(remindEmissions_path, magpiemif_path) {
+formatInput <- function(remindmif_path, magpiemif_path) {
 
     #
     # Remind emissions
     #
 
-    # Both .RDS and .mif formats are acceptable
-    if (str_detect(string = remindEmissions_path, pattern = ".RDS")) {
-        remind <- readRDS(remindEmissions_path) # This will read in a magpie object, which at the moment will break.
-    } else {
-        remind <- read.csv(remindEmissions_path, header = TRUE, sep = ';', stringsAsFactors = FALSE) # USE READ_REPORT rather than .csv
-    }
-
-# TODO Only run all this stuff if the emissions haven't been already cleaned ...
-
+    remind <- read.csv(remindmif_path, header = TRUE, sep = ';', stringsAsFactors = FALSE)
+    
     # Filter for only World-level emissions
     remind <- remind %>%
         filter(str_detect(string = Variable, pattern = 'Emi\\|'),
@@ -55,7 +48,7 @@ formatInput <- function(remindEmissions_path, magpiemif_path) {
                    str_detect(string = Variable, pattern = 'Emi\\|HFC\\|HFC')) %>%
         filter(str_detect(string = Unit, pattern = "equiv", negate = TRUE))
 
-    # Remove "Emi|" in Unit column
+    # Simplify Variable's reporting name to reflect the overall Unit
     remind <- remind %>%
         mutate(Variable = str_extract(string = Unit, pattern = "(?<=\\s)(.+)(?=/)"))
 
@@ -70,21 +63,21 @@ formatInput <- function(remindEmissions_path, magpiemif_path) {
                Value = as.numeric(Value))
 
     .convertRemindUnits <- function(.variable, .unit, .value) {
-        # TODO Error-checking, make sure that the units are consistent with expectations
-        if (.variable == "CO2") {
+        
+        if (.unit == "Mt CO2/yr") {
             .variable <- "CO2I"
             .unit     <- "Gt C/yr"
             .value    <- .value * 12/44 * 0.001 # Convert to CO2 to C and Mt to Gt
-        } else if (.variable == "NOX") {
+        } else if (.unit == "Mt NOX/yr") {
             .unit  <- "Mt N/yr"
             .value <- .value * 14/46
-        } else if (.variable == "NH3") {
+        } else if (.unit == "Mt NH3/yr") {
             .unit  <- "Mt N/yr"
             .value <- .value * 14/17
-        } else if (.variable == "N2O") {
+        } else if (.unit == "kt N2O/yr") {
             .unit  <- "Mt N2ON/yr"
             .value <- .value * 28/44 * 0.0001 # Covert kt to Mt
-        } else if (str_detect(string = .variable, pattern = "HFC")) {
+        } else if (str_detect(string = .unit, pattern = "HFC")) {
             .variable <- toupper(.variable)
             .variable <- str_remove(.variable, "-")
 
@@ -99,21 +92,20 @@ formatInput <- function(remindEmissions_path, magpiemif_path) {
             .unit <- paste0(.unit[1], " ", .unit[2], "/", .unit[3])
         }
         return(data.frame(.variable, .unit, .value))
+
     }
 
     remind <- remind %>%
         ungroup() %>%
         mutate(vars = pmap(.l = list(Variable, Unit, Value),
                            .f = ~ .convertRemindUnits(..1, ..2, ..3))) %>%
+        select(-Variable, -Unit, -Value) %>%
         unnest(vars) %>%
         mutate(.variable = as.character(.variable),
                .unit     = as.character(.unit)) %>%
-        select(-Variable, -Unit, -Value) %>%
         rename(Variable = .variable,
                Unit     = .unit,
                Value    = .value)
-
-#END ONLY RUN IF...
 
     #
     # MAgPIE emissions
@@ -151,17 +143,16 @@ formatInput <- function(remindEmissions_path, magpiemif_path) {
         group_by(Model, Scenario, Region, Unit, Year) %>%
         summarise(Value = sum(Value))
 
-    # Re-integrate top-level emission variable from the Unit for MAGICC's read in
+    # Re-integrate top-level emission variable from the Unit for MAGICC's read-in
     magpie <- magpie %>%
         mutate(Variable = str_extract(string = Unit, pattern = "(?<=\\s)(.+)(?=/)"))
 
     .convertMAgPIEUnits <- function(.variable, .unit, .value) {
-        # TODO Error-checking, make sure that the units are consistent with expectations
-        if (.variable == "CO2") {
+        if (.unit == "Mt CO2/yr") {
             .variable <- "CO2B"
             .unit     <- "Gt C/yr"
             .value    <- .value * 12/44 * 0.001 # Convert to CO2 to C and Mt to Gt
-        } else if (.variable == "N2O") {
+        } else if (.unit == "Mt N2O/yr") {
             .unit  <- "Mt N2ON/yr"
             .value <- .value * 28/44
         }
@@ -172,10 +163,10 @@ formatInput <- function(remindEmissions_path, magpiemif_path) {
         ungroup() %>%
         mutate(vars = pmap(.l = list(Variable, Unit, Value),
                            .f = ~ .convertMAgPIEUnits(..1, ..2, ..3))) %>%
+        select(-Variable, -Unit, -Value) %>%
         unnest(vars) %>%
         mutate(.variable = as.character(.variable),
                .unit     = as.character(.unit)) %>%
-        select(-Variable, -Unit, -Value) %>%
         rename(Variable = .variable,
                Unit     = .unit,
                Value    = .value)
