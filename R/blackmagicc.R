@@ -5,10 +5,20 @@
 #'
 #' @export
 #'
+#' @param dir the MAgPIE scenario output directory that contains the report.mif and config.yaml
 #' @param remind_name name of the desired reference scenario report.mif for REMIND. May or may not include 
 #' the `.mif` extension. If NULL, blackmagicc will try to read the scenario from the MAgPIE run's config.yaml.
-#' @param dir the MAgPIE scenario output directory that contains the report.mif and config.yaml
+#' If a custom REMIND scenario is desired, it should be placed in `dir`.
+#'
+#' These REMIND scenarios are packaged as potential defaults within blackmagicc:
+#'      bjoernAR6_C_SDP-PkBudg1000.mif
+#'      bjoernAR6_C_SSP1-NDC.mif
+#'      bjoernAR6_C_SSP1-PkBudg900.mif
+#'      bjoernAR6_C_SSP2-NDC.mif
+#'      bjoernAR6_C_SSP2-PkBudg900.mif
+#' For more information about these scenario's assumptions, see `https://www.nature.com/articles/s41558-021-01098-3`
 #' @param append append the global surface temperature from MAGICC onto the report.mif and report.rds?
+#'
 #' @return a magpie object containing the MAGICC warming pathway
 #'
 #' @importFrom stringr str_detect str_remove
@@ -22,7 +32,7 @@
 #'     x <- blackmagicc()
 #'   }
 
-blackmagicc <- function(remind_name = NULL, dir = ".", append = FALSE) {
+blackmagicc <- function(dir = ".", remind_name = NULL, append = FALSE) {
 
     message("Creating temporary directory and extracting MAGICC-v7.5.3")
     tmpdir <- withr::local_tempdir()
