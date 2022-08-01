@@ -37,7 +37,7 @@ runMAGICC <- function(emissions_fn, base_path) {
               to   = file.path(magiccRun_dir, paste0(emissions_fn, ".SCEN7")))
 
     if (length(list.files(magiccOut_dir)) > 0 ) {
-        file.remove(files.list(magiccOut_dir)) # Ensure that the magicc/out dir is empty
+        file.remove(list.files(magiccOut_dir)) # Ensure that the magicc/out dir is empty
     }
 
     # Run MAGICC7
@@ -66,5 +66,5 @@ runMAGICC <- function(emissions_fn, base_path) {
 
     # TODO As of now the PARAMETERS output file is not requested, though it can be useful for debugging. Future
     # iterations may want to include these files optionally.
-    
+
 }

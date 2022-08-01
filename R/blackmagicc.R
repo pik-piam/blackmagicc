@@ -6,7 +6,7 @@
 #' @export
 #'
 #' @param dir the MAgPIE scenario output directory that contains the report.mif and config.yaml
-#' @param remind_name name of the desired reference scenario report.mif for REMIND. May or may not include 
+#' @param remind_name name of the desired reference scenario report.mif for REMIND. May or may not include
 #' the `.mif` extension. If NULL, blackmagicc will try to read the scenario from the MAgPIE run's config.yaml.
 #' If a custom REMIND scenario is desired, it should be placed in `dir`.
 #'
@@ -16,11 +16,12 @@
 #'      bjoernAR6_C_SSP1-PkBudg900.mif
 #'      bjoernAR6_C_SSP2-NDC.mif
 #'      bjoernAR6_C_SSP2-PkBudg900.mif
-#' For more information about these scenario's assumptions, see `https://www.nature.com/articles/s41558-021-01098-3`
+#' For more information about these scenarios' assumptions, see `https://www.nature.com/articles/s41558-021-01098-3`
 #' @param append append the global surface temperature from MAGICC onto the report.mif and report.rds?
 #'
 #' @return a magpie object containing the MAGICC warming pathway
 #'
+#' @importFrom gms loadConfig
 #' @importFrom stringr str_detect str_remove
 #' @importFrom withr local_tempdir
 #' @importFrom utils untar
@@ -45,13 +46,13 @@ blackmagicc <- function(dir = ".", remind_name = NULL, append = FALSE) {
         remind_name <- getOption(scenarioConfig, "magicc_emis_scen")
 
         if (is.null(remind_name)) {
-            stop("This MAgPIE scenario does not specify a REMIND emission scenario as a 
+            stop("This MAgPIE scenario does not specify a REMIND emission scenario as a
                   parameter or in its config.yml")
-        } 
+        }
     }
 
     if (str_detect(string = remind_name, pattern = "\\..*")) {
-        remind_name = str_remove(string = remind_name, pattern = "\\..*")
+        remind_name <- str_remove(string = remind_name, pattern = "\\..*")
     }
 
     message("Finding a REMIND emission scenario with the name: ", remind_name)
@@ -63,7 +64,7 @@ blackmagicc <- function(dir = ".", remind_name = NULL, append = FALSE) {
     remindmif_path <- remind_potentialPaths[file.exists(remind_potentialPaths)] %>% first()
 
     if (is.null(remindmif_path)) {
-        stop("Neither the MAgPIE scenario's output directory nor the default REMIND emissions directory 
+        stop("Neither the MAgPIE scenario's output directory nor the default REMIND emissions directory
               contain a report.mif with that name. Please note that so far .rds files are not supported.")
     }
 
@@ -72,7 +73,7 @@ blackmagicc <- function(dir = ".", remind_name = NULL, append = FALSE) {
     magpiemif_path <- file.path(dir, "report.mif")
 
     if (is.null(magpiemif_path)) {
-        stop("No report.mif found in the MAgPIE scenario's output directory. Please note that so far .rds 
+        stop("No report.mif found in the MAgPIE scenario's output directory. Please note that so far .rds
               files are not supported.")
     }
 
@@ -93,7 +94,7 @@ blackmagicc <- function(dir = ".", remind_name = NULL, append = FALSE) {
     runMAGICC(emissions_files, tmpdir)
 
     message("Formatting raw output")
-    originalReport <- read.report(magpiemif_path, as.list = FALSE) 
+    originalReport <- read.report(magpiemif_path, as.list = FALSE)
     yearsToKeep <- str_remove(string = getYears(originalReport), pattern = "y")
 
     rawOutput_dir <- file.path(tmpdir, "raw", "output")
@@ -105,17 +106,18 @@ blackmagicc <- function(dir = ".", remind_name = NULL, append = FALSE) {
         message("Appending warming variables to ", magpiemif_path)
         oldWarmingVariables <- str_detect(getItems(originalReport, dim = 3), getItems(warmingOutput, dim = 3.3))
         if (any(oldWarmingVariables)) {
-            message("Global Surface Temperature was already found in your report.mif. Removing those and adding the new ones.")
-            originalReport <- originalReport[,, !oldWarmingVariables]
+            message("Global Surface Temperature was already found in your report.mif. Removing those and adding the new
+                    ones.")
+            originalReport <- originalReport[, , !oldWarmingVariables]
         }
 
         write.report(x = originalReport, file = magpiemif_path)
-        write.report(x = warmingOutput, file = magpiemif_path, append = T)
+        write.report(x = warmingOutput, file = magpiemif_path, append = TRUE)
 
         toSaveAsRDS <- read.report(magpiemif_path)
         magpierds_path <- file.path(dir, "report.rds")
         saveRDS(toSaveAsRDS, file = magpierds_path)
-        
+
     }
 
     message("Done!")

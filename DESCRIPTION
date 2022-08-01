@@ -5,9 +5,9 @@ Version: 0.0.1
 Date: 2022-07-20
 Authors@R: 
     person("Michael", "Crawford", role = c("cre", "aut"), email = "crawford@pik-potsdam.de")
-Description: Enables MAgPIE runs to project potential global surface area temperatures from MAGICC, using reference REMIND scenarios to represent the energy sector.
+Description: Enables MAgPIE runs to project global surface area temperatures with MAGICC, using reference REMIND scenarios to represent emissions from the energy sector.
 Depends:
-    R(>= 3.6.3)
+    R(>= 3.6.3.0)
 Imports:
     withr,
     utils,
@@ -15,13 +15,14 @@ Imports:
     purrr,
     stringr,
     tidyr,
-    readr
+    readr,
+    magclass,
+    gms
 Suggests:
     testthat
 URL:
-BugReports:
+BugReports: https://github.com/pik-piam/blackmagicc/issues
 License: BSD_2_clause + file LICENSE
 LazyData: no
 Encoding: UTF-8
 RoxygenNote: 7.2.0
-VignetteBuilder: knitr

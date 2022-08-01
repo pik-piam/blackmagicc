@@ -1,4 +1,4 @@
 library(testthat)
-library(madrat)
+library(blackmagicc)
 
-test_check("madrat")
+test_check("blackmagicc")
