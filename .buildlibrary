@@ -4,3 +4,4 @@ AcceptedWarnings:
 - 'Warning: namespace ''.*'' is not available and has been replaced'
 AcceptedNotes: unable to verify current time
 allowLinterWarnings: yes
+ValidationKey: '192060'

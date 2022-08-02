@@ -12,6 +12,7 @@
 #' @importFrom tidyr separate
 #' @importFrom stringr str_remove
 #' @importFrom purrr map reduce
+#' @importFrom rlang .data
 #'
 #' @examples
 #'   \dontrun{
@@ -26,9 +27,9 @@ formatOutput <- function(rawOutput_dir, yearsToKeep) {
         .d <- suppressMessages(read_table(file = file.path(rawOutput_dir, fn), col_names = TRUE, skip = 21))
 
         .d <- .d %>%
-            select(YEARS, GLOBAL) %>%
-            mutate(scenario = str_remove(string = fn, pattern = ".out")) %>%
-            separate(col = scenario, into = c("REMIND", "MAgPIE"), sep = "__", remove = TRUE)
+            select(.data$YEARS, .data$GLOBAL) %>%
+            mutate(scenario = str_remove(string = .data$fn, pattern = ".out")) %>%
+            separate(col = .data$scenario, into = c("REMIND", "MAgPIE"), sep = "__", remove = TRUE)
 
         return(.d)
     }
@@ -36,8 +37,8 @@ formatOutput <- function(rawOutput_dir, yearsToKeep) {
     out <- out_files %>%
         map(.f = ~ .read_output(.x, rawOutput_dir)) %>%
         reduce(.f = bind_rows) %>%
-        select(REMIND, MAgPIE, YEARS, GLOBAL) %>%
-        rename(Year = YEARS)
+        select(.data$REMIND, .data$MAgPIE, .data$YEARS, .data$GLOBAL) %>%
+        rename(Year = .data$YEARS)
 
     if (length(unique(out$REMIND)) != 1) {
         stop("At this time, blackmagicc is configured to only process one REMIND scenario per MAgPIE scenario.")
@@ -48,21 +49,21 @@ formatOutput <- function(rawOutput_dir, yearsToKeep) {
     #   ! so we recommend running 5 years more than needed and
     #   ! cutting the output to get sensible results
     out <- out %>%
-        mutate(GLOBAL = ifelse(Year < (max(Year) - 5), 
-                               GLOBAL,
+        mutate(GLOBAL = ifelse(.data$Year < (max(.data$Year) - 5),
+                               .data$GLOBAL,
                                NA))
 
     # Format for .mif
     out <- out %>%
         mutate(Model = "MAgPIE",
-               Scenario = MAgPIE,
+               Scenario = .data$MAgPIE,
                Region = "GLO",
                Variable = "GlobalSurfaceTemperature",
                Unit = "C") %>%
-        rename(Value = GLOBAL) %>%
-        filter(Year %in% yearsToKeep) %>%
-        select(Model, Scenario, Variable, Unit, Year, Value) %>%
-        arrange(Year) %>%
+        rename(Value = .data$GLOBAL) %>%
+        filter(.data$Year %in% yearsToKeep) %>%
+        select(.data$Model, .data$Scenario, .data$Variable, .data$Unit, .data$Year, .data$Value) %>%
+        arrange(.data$Year) %>%
         pivot_wider(names_from = "Year", values_from = "Value")
 
     return(out)

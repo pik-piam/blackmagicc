@@ -1,14 +1,13 @@
 #' @title blackmagicc
-#' @description Runs MAGICC-v7.5.3 on a given MAgPIE report.mif, optionally with custom REMIND
-#' reference emissions.
+#' @description Runs MAGICC-v7.5.3 on a given MAgPIE report.mif, optionally with custom REMIND reference emissions.
 #' @author Michael Crawford
 #'
 #' @export
 #'
-#' @param dir the MAgPIE scenario output directory that contains the report.mif and config.yaml
+#' @param dir the MAgPIE scenario output directory that contains the report.mif and config.yml
 #' @param remind_name name of the desired reference scenario report.mif for REMIND. May or may not include
-#' the `.mif` extension. If NULL, blackmagicc will try to read the scenario from the MAgPIE run's config.yaml.
-#' If a custom REMIND scenario is desired, it should be placed in `dir`.
+#' the `.mif` extension. If NULL, blackmagicc will try to read the scenario from the MAgPIE run's config.yml.
+#' If a custom REMIND scenario is desired, it should be placed within `dir`.
 #'
 #' These REMIND scenarios are packaged as potential defaults within blackmagicc:
 #'      bjoernAR6_C_SDP-PkBudg1000.mif

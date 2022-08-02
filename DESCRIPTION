@@ -1,8 +1,8 @@
 Package: blackmagicc
 Type: Package
 Title: MAgPIE-MAGICC Integration
-Version: 0.0.1
-Date: 2022-07-20
+Version: 0.1.0
+Date: 2022-08-02
 Authors@R: 
     person("Michael", "Crawford", role = c("cre", "aut"), email = "crawford@pik-potsdam.de")
 Description: Enables MAgPIE runs to project global surface area temperatures with MAGICC, using reference REMIND scenarios to represent emissions from the energy sector.
@@ -11,6 +11,7 @@ Depends:
 Imports:
     withr,
     utils,
+    rlang,
     dplyr,
     purrr,
     stringr,
@@ -19,6 +20,7 @@ Imports:
     magclass,
     gms
 Suggests:
+    covr,
     testthat
 URL:
 BugReports: https://github.com/pik-piam/blackmagicc/issues
