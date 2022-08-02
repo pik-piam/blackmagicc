@@ -42,7 +42,7 @@ blackmagicc <- function(dir = ".", remind_name = NULL, append = FALSE) {
         message("Loading REMIND emissions specified in the config.yml")
 
         scenarioConfig <- gms::loadConfig(file.path(dir, "config.yml"))
-        remind_name <- getOption(scenarioConfig, "magicc_emis_scen")
+        remind_name <- scenarioConfig[["magicc_emis_scen"]]
 
         if (is.null(remind_name)) {
             stop("This MAgPIE scenario does not specify a REMIND emission scenario as a

@@ -28,7 +28,7 @@ formatOutput <- function(rawOutput_dir, yearsToKeep) {
 
         .d <- .d %>%
             select(.data$YEARS, .data$GLOBAL) %>%
-            mutate(scenario = str_remove(string = .data$fn, pattern = ".out")) %>%
+            mutate(scenario = str_remove(string = fn, pattern = ".out")) %>%
             separate(col = .data$scenario, into = c("REMIND", "MAgPIE"), sep = "__", remove = TRUE)
 
         return(.d)
