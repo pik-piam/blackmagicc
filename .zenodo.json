@@ -1,6 +1,6 @@
 {
   "title": "blackmagicc: MAgPIE-MAGICC Integration",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "description": "<p>Enables MAgPIE runs to project global surface area temperatures with MAGICC, using reference REMIND scenarios to represent emissions from the energy sector.<\/p>",
   "creators": [
     {

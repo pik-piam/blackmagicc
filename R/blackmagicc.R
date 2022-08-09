@@ -26,6 +26,7 @@
 #' @importFrom utils untar
 #' @importFrom dplyr %>% first
 #' @importFrom magclass read.report getYears as.magpie getItems write.report
+#' @importFrom quitte as.quitte
 #'
 #' @examples
 #'   \dontrun{
@@ -105,17 +106,17 @@ blackmagicc <- function(dir = ".", remind_name = NULL, append = FALSE) {
         message("Appending warming variables to ", magpiemif_path)
         oldWarmingVariables <- str_detect(getItems(originalReport, dim = 3), getItems(warmingOutput, dim = 3.3))
         if (any(oldWarmingVariables)) {
-            message("Global Surface Temperature was already found in your report.mif. Removing those and adding the new
-                    ones.")
+            message("Global Surface Temperature was already found in your report.mif. Removing those and adding the new ones.")
             originalReport <- originalReport[, , !oldWarmingVariables]
         }
 
         write.report(x = originalReport, file = magpiemif_path)
         write.report(x = warmingOutput, file = magpiemif_path, append = TRUE)
 
-        toSaveAsRDS <- read.report(magpiemif_path)
+        toSaveAsRDS <- read.report(magpiemif_path, as.list = FALSE)
+        toSaveAsRDS <- as.quitte(toSaveAsRDS)
         magpierds_path <- file.path(dir, "report.rds")
-        saveRDS(toSaveAsRDS, file = magpierds_path)
+        saveRDS(toSaveAsRDS, file = magpierds_path, version = 2)
 
     }
 
