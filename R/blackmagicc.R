@@ -9,11 +9,18 @@
 #' the `.mif` extension. If NULL, blackmagicc will try to read the scenario from the MAgPIE run's config.yml.
 #' If a custom REMIND scenario is desired, it should be placed within `dir`.
 #'
-#' These REMIND scenarios are packaged as potential defaults within blackmagicc:
+#' These REMIND scenarios are packaged within blackmagicc:
+#'      bjoernAR6_C_RemSDP-900-MagSSP1.mif
+#'      bjoernAR6_C_RemSSP1-1000-MagSDP.mif
+#'      bjoernAR6_C_SDP-NPi.mif
 #'      bjoernAR6_C_SDP-PkBudg1000.mif
+#'      bjoernAR6_C_SSP1-Base.mif
 #'      bjoernAR6_C_SSP1-NDC.mif
+#'      bjoernAR6_C_SSP1-NPi.mif
 #'      bjoernAR6_C_SSP1-PkBudg900.mif
+#'      bjoernAR6_C_SSP2-Base.mif
 #'      bjoernAR6_C_SSP2-NDC.mif
+#'      bjoernAR6_C_SSP2-NPi.mif
 #'      bjoernAR6_C_SSP2-PkBudg900.mif
 #' For more information about these scenarios' assumptions, see `https://www.nature.com/articles/s41558-021-01098-3`
 #' @param append append the global surface temperature from MAGICC onto the report.mif and report.rds?
