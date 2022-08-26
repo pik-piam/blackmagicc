@@ -58,7 +58,7 @@ formatOutput <- function(rawOutput_dir, yearsToKeep) {
         mutate(Model = "MAgPIE",
                Scenario = .data$MAgPIE,
                Region = "GLO",
-               Variable = "GlobalSurfaceTemperature",
+               Variable = "Global Surface Temperature",
                Unit = "C") %>%
         rename(Value = .data$GLOBAL) %>%
         filter(.data$Year %in% yearsToKeep) %>%
