@@ -8,6 +8,7 @@
 #' @param remind_name name of the desired reference scenario report.mif for REMIND. May or may not include
 #' the `.mif` extension. If NULL, blackmagicc will try to read the scenario from the MAgPIE run's config.yml.
 #' If a custom REMIND scenario is desired, it should be placed within `dir`.
+#' @param save_MAGICC_io print intermediate input, output, and settings from MAGICC into the output folder
 #'
 #' These REMIND scenarios are packaged within blackmagicc:
 #'      bjoernAR6_C_RemSDP-900-MagSSP1.mif
@@ -40,16 +41,29 @@
 #'     x <- blackmagicc()
 #'   }
 
-blackmagicc <- function(dir = ".", remind_name = NULL, append = FALSE) {
+blackmagicc <- function(dir = ".", remind_name = NULL, append = FALSE, save_MAGICC_io = TRUE) {
 
     message("Creating temporary directory and extracting MAGICC-v7.5.3")
+
+    scenarioConfig <- gms::loadConfig(file.path(dir, "config.yml"))
+
+    blackmagicc_dir <- NULL
+    if (save_MAGICC_io) {
+        blackmagicc_dir <- file.path(dir, "..", "blackmagicc")
+        if (!dir.exists(blackmagicc_dir)) {
+            dir.create(blackmagicc_dir)
+        } else {
+            message("These scenarios already exist in the blackmagicc intermediates folder.
+                    Re-writing over old inputs.")
+        }
+    }
+
     tmpdir <- withr::local_tempdir()
     untar("/p/projects/magpie/magicc-v7.5.3.tgz", exdir = tmpdir)
 
     if (is.null(remind_name)) {
         message("Loading REMIND emissions specified in the config.yml")
 
-        scenarioConfig <- gms::loadConfig(file.path(dir, "config.yml"))
         remind_name <- scenarioConfig[["magicc_emis_scen"]]
 
         if (is.null(remind_name)) {
@@ -87,7 +101,7 @@ blackmagicc <- function(dir = ".", remind_name = NULL, append = FALSE) {
     message("Using the MAgPIE scenario found in: ", magpiemif_path)
 
     message("Combining REMIND reference emissions with the updated MAgPIE emissions")
-    emissions <- formatInput(remindmif_path, magpiemif_path)
+    emissions <- formatInput(remindmif_path, magpiemif_path, blackmagicc_dir)
 
     message("Writing formatted MAGICC7 .SCEN files to raw/input")
     rawInput_dir <- file.path(tmpdir, "raw", "input")

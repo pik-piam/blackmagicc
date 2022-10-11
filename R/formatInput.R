@@ -5,6 +5,7 @@
 #'
 #' @param remindmif_path file path for the reference REMIND emissions
 #' @param magpiemif_path file path for the MAgPIE emissions
+#' @param blackmagicc_dir directory to save intermediate inputs used by MAGICC
 #'
 #' @return a composite data.frame containing the scenario's MAgPIE emissions and reference REMIND emissions
 #'
@@ -14,13 +15,14 @@
 #' @importFrom tidyr as_tibble pivot_longer unnest pivot_wider
 #' @importFrom purrr pmap
 #' @importFrom rlang .data
+#' @importFrom utils write.csv
 #'
 #' @examples
 #'   \dontrun{
 #'     x <- formatInput(remindmif_path, magpiemif_path)
 #'   }
 
-formatInput <- function(remindmif_path, magpiemif_path) {
+formatInput <- function(remindmif_path, magpiemif_path, blackmagicc_dir = NULL) {
 
   #
   # Remind emissions
@@ -178,11 +180,6 @@ formatInput <- function(remindmif_path, magpiemif_path) {
   # Integrate the REMIND emissions and the new MAgPIE emissions
   #
 
-  all <- bind_rows(remind, magpie) %>%
-    filter(.data$Year %in% unique(magpie$Year)) %>%
-    mutate(Unit = str_replace(string = .data$Unit, pattern = " ", replacement = "_"),
-           Unit = str_replace(string = .data$Unit, pattern = "/", replacement = "_per_"))
-
   if (length(unique(remind$Scenario)) > 1 || length(unique(magpie$Scenario)) > 1) {
     stop("blackmagicc::formatInput was called on a report containing more than one scenario.\n
               This function should only be called on original reports, not merged reports.")
@@ -190,17 +187,37 @@ formatInput <- function(remindmif_path, magpiemif_path) {
 
   scenario <- paste0(unique(remind$Scenario), "__", unique(magpie$Scenario))
 
-  all <- all %>%
-    group_by(.data$Region, .data$Variable, .data$Unit, .data$Year) %>%
-    summarise(Value = sum(.data$Value)) %>%
-    mutate(Model = "REMIND-MAgPIE", Scenario = scenario) %>%
-    select(.data$Model, .data$Region, .data$Scenario, .data$Unit, .data$Variable, .data$Year, .data$Value) %>%
-    arrange(.data$Variable) %>% # Order of the variables matters after the pivot!
-    pivot_wider(names_from = c("Variable", "Unit"), values_from = "Value", names_sep = " ")
+  all <- bind_rows(remind, magpie) %>%
+    filter(.data$Year %in% unique(magpie$Year))
 
   # Ensure that the MAGICC data is used during the historical period, ensuring a better pattern
   # during the historical period. The end warming (i.e. year 2099) is left unaffected regardless.
   all <- all %>% filter(.data$Year > 2014)
+
+  all <- all %>%
+    group_by(.data$Region, .data$Variable, .data$Unit, .data$Year) %>%
+    summarise(Value = sum(.data$Value)) %>%
+    mutate(Model = "REMIND-MAgPIE", Scenario = scenario) %>%
+    select(.data$Model, .data$Scenario, .data$Region, .data$Variable, .data$Unit, .data$Year, .data$Value) %>%
+    arrange(.data$Variable)# Order of the variables matters after the pivot!
+
+  if (!is.null(blackmagicc_dir)) {
+
+    inputCSV_dir <- file.path(blackmagicc_dir, "input_csvs")
+    dir.create(inputCSV_dir, showWarnings = FALSE)
+
+    input_mifs <- all %>%
+      group_by(.data$Model, .data$Region, .data$Scenario, .data$Variable, .data$Unit) %>%
+      pivot_wider(names_from = "Year", values_from = "Value", names_sep = " ")
+
+    write.csv(x = input_mifs, file = file.path(inputCSV_dir, paste0(scenario, ".csv")), row.names = FALSE)
+
+  }
+
+  all <- all %>%
+    mutate(Unit = str_replace(string = .data$Unit, pattern = " ", replacement = "_"),
+           Unit = str_replace(string = .data$Unit, pattern = "/", replacement = "_per_")) %>%
+    pivot_wider(names_from = c("Variable", "Unit"), values_from = "Value", names_sep = " ")
 
   return(all)
 }

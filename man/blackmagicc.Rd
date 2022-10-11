@@ -4,14 +4,23 @@
 \alias{blackmagicc}
 \title{blackmagicc}
 \usage{
-blackmagicc(dir = ".", remind_name = NULL, append = FALSE)
+blackmagicc(
+  dir = ".",
+  remind_name = NULL,
+  append = FALSE,
+  save_MAGICC_io = TRUE
+)
 }
 \arguments{
 \item{dir}{the MAgPIE scenario output directory that contains the report.mif and config.yml}
 
 \item{remind_name}{name of the desired reference scenario report.mif for REMIND. May or may not include
 the `.mif` extension. If NULL, blackmagicc will try to read the scenario from the MAgPIE run's config.yml.
-If a custom REMIND scenario is desired, it should be placed within `dir`.
+If a custom REMIND scenario is desired, it should be placed within `dir`.}
+
+\item{append}{append the global surface temperature from MAGICC onto the report.mif and report.rds?}
+
+\item{save_MAGICC_io}{print intermediate input, output, and settings from MAGICC into the output folder
 
 These REMIND scenarios are packaged within blackmagicc:
      bjoernAR6_C_RemSDP-900-MagSSP1.mif
@@ -27,8 +36,6 @@ These REMIND scenarios are packaged within blackmagicc:
      bjoernAR6_C_SSP2-NPi.mif
      bjoernAR6_C_SSP2-PkBudg900.mif
 For more information about these scenarios' assumptions, see `https://www.nature.com/articles/s41558-021-01098-3`}
-
-\item{append}{append the global surface temperature from MAGICC onto the report.mif and report.rds?}
 }
 \value{
 a magpie object containing the MAGICC warming pathway

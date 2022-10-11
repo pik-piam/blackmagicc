@@ -4,12 +4,14 @@
 \alias{formatInput}
 \title{formatInput}
 \usage{
-formatInput(remindmif_path, magpiemif_path)
+formatInput(remindmif_path, magpiemif_path, blackmagicc_dir = NULL)
 }
 \arguments{
 \item{remindmif_path}{file path for the reference REMIND emissions}
 
 \item{magpiemif_path}{file path for the MAgPIE emissions}
+
+\item{blackmagicc_dir}{directory to save intermediate inputs used by MAGICC}
 }
 \value{
 a composite data.frame containing the scenario's MAgPIE emissions and reference REMIND emissions
