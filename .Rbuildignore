@@ -12,3 +12,4 @@ cran-comments.md
 ^vignettes/.lintr$
 ^codecov\.yml$
 ^\.github$
+^Makefile$

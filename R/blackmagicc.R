@@ -43,8 +43,6 @@
 
 blackmagicc <- function(dir = ".", remind_name = NULL, append = FALSE, save_MAGICC_io = TRUE) {
 
-    message("Creating temporary directory and extracting MAGICC-v7.5.3")
-
     scenarioConfig <- gms::loadConfig(file.path(dir, "config.yml"))
 
     blackmagicc_dir <- NULL
@@ -54,7 +52,7 @@ blackmagicc <- function(dir = ".", remind_name = NULL, append = FALSE, save_MAGI
             dir.create(blackmagicc_dir)
         } else {
             message("These scenarios already exist in the blackmagicc intermediates folder.
-                    Re-writing over old inputs.")
+            Re-writing over old inputs.")
         }
     }
 
@@ -62,13 +60,13 @@ blackmagicc <- function(dir = ".", remind_name = NULL, append = FALSE, save_MAGI
     untar("/p/projects/magpie/magicc-v7.5.3.tgz", exdir = tmpdir)
 
     if (is.null(remind_name)) {
-        message("Loading REMIND emissions specified in the config.yml")
-
         remind_name <- scenarioConfig[["magicc_emis_scen"]]
 
-        if (is.null(remind_name)) {
-            stop("This MAgPIE scenario does not specify a REMIND emission scenario as a
-                  parameter or in its config.yml")
+        if (remind_name == "NULL" || is.null(remind_name)) {
+            message("This MAgPIE scenario does not specify a REMIND emission scenario as a parameter
+            or in its config.yml")
+            message("Done!")
+            return()
         }
     }
 
@@ -89,8 +87,6 @@ blackmagicc <- function(dir = ".", remind_name = NULL, append = FALSE, save_MAGI
               contain a report.mif with that name. Please note that so far .rds files are not supported.")
     }
 
-    message("Using the REMIND scenario found at: ", remindmif_path)
-
     magpiemif_path <- file.path(dir, "report.mif")
 
     if (is.null(magpiemif_path)) {
@@ -98,23 +94,17 @@ blackmagicc <- function(dir = ".", remind_name = NULL, append = FALSE, save_MAGI
               files are not supported.")
     }
 
-    message("Using the MAgPIE scenario found in: ", magpiemif_path)
-
-    message("Combining REMIND reference emissions with the updated MAgPIE emissions")
     emissions <- formatInput(remindmif_path, magpiemif_path, blackmagicc_dir)
 
-    message("Writing formatted MAGICC7 .SCEN files to raw/input")
     rawInput_dir <- file.path(tmpdir, "raw", "input")
     writeInput(emissions, rawInput_dir)
 
-    message("Running MAGICC7")
     emissions_files <- list.files(rawInput_dir) %>% gsub(pattern = ".SCEN7$", replacement = "")
     if (length(emissions_files) > 1) {
         stop("MAGICC raw/input directory should not have more than one file in it")
     }
     runMAGICC(emissions_files, tmpdir)
 
-    message("Formatting raw output")
     originalReport <- read.report(magpiemif_path, as.list = FALSE)
     yearsToKeep <- str_remove(string = getYears(originalReport), pattern = "y")
 
@@ -124,10 +114,10 @@ blackmagicc <- function(dir = ".", remind_name = NULL, append = FALSE, save_MAGI
 
     if (append) {
 
-        message("Appending warming variables to ", magpiemif_path)
         oldWarmingVariables <- str_detect(getItems(originalReport, dim = 3), getItems(warmingOutput, dim = 3.3))
         if (any(oldWarmingVariables)) {
-            message("Global Surface Temperature was already found in your report.mif. Removing those and adding the new ones.")
+            message("Global Surface Temperature was already found in your report.mif. Removing those and
+            adding the new ones.")
             originalReport <- originalReport[, , !oldWarmingVariables]
         }
 
@@ -136,11 +126,12 @@ blackmagicc <- function(dir = ".", remind_name = NULL, append = FALSE, save_MAGI
 
         toSaveAsRDS <- read.report(magpiemif_path, as.list = FALSE)
         toSaveAsRDS <- as.quitte(toSaveAsRDS)
-        magpierds_path <- file.path(dir, "report.rds")
-        saveRDS(toSaveAsRDS, file = magpierds_path, version = 2)
+        magpieRDS_path <- file.path(dir, "report.rds")
+        saveRDS(toSaveAsRDS, file = magpieRDS_path, version = 2)
 
     }
 
     message("Done!")
+
     return(warmingOutput)
 }
