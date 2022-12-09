@@ -51,8 +51,7 @@ blackmagicc <- function(dir = ".", remind_name = NULL, append = FALSE, save_MAGI
         if (!dir.exists(blackmagicc_dir)) {
             dir.create(blackmagicc_dir)
         } else {
-            message("These scenarios already exist in the blackmagicc intermediates folder.
-            Re-writing over old inputs.")
+            message("These scenarios already exist in the blackmagicc intermediates folder, and will be replaced")
         }
     }
 
@@ -63,10 +62,9 @@ blackmagicc <- function(dir = ".", remind_name = NULL, append = FALSE, save_MAGI
         remind_name <- scenarioConfig[["magicc_emis_scen"]]
 
         if (remind_name == "NULL" || is.null(remind_name)) {
-            message("This MAgPIE scenario does not specify a REMIND emission scenario as a parameter
-            or in its config.yml")
+            message("This MAgPIE scenario does not specify a REMIND emission scenario")
             message("Done!")
-            return()
+            return(NULL)
         }
     }
 
@@ -83,15 +81,13 @@ blackmagicc <- function(dir = ".", remind_name = NULL, append = FALSE, save_MAGI
     remindmif_path <- remind_potentialPaths[file.exists(remind_potentialPaths)] %>% first()
 
     if (is.null(remindmif_path)) {
-        stop("Neither the MAgPIE scenario's output directory nor the default REMIND emissions directory
-              contain a report.mif with that name. Please note that so far .rds files are not supported.")
+        stop("REMIND emissions report.mif was not found.")
     }
 
     magpiemif_path <- file.path(dir, "report.mif")
 
     if (is.null(magpiemif_path)) {
-        stop("No report.mif found in the MAgPIE scenario's output directory. Please note that so far .rds
-              files are not supported.")
+        stop("MAgPIE scenario report.mif was not found in the output directory")
     }
 
     emissions <- formatInput(remindmif_path, magpiemif_path, blackmagicc_dir)
@@ -116,8 +112,7 @@ blackmagicc <- function(dir = ".", remind_name = NULL, append = FALSE, save_MAGI
 
         oldWarmingVariables <- str_detect(getItems(originalReport, dim = 3), getItems(warmingOutput, dim = 3.3))
         if (any(oldWarmingVariables)) {
-            message("Global Surface Temperature was already found in your report.mif. Removing those and
-            adding the new ones.")
+            message("Global Surface Temperature was already found in your report.mif, and will be replaced")
             originalReport <- originalReport[, , !oldWarmingVariables]
         }
 
