@@ -22,7 +22,7 @@ necessary to run MAGICC7
 }
 \examples{
   \dontrun{
-    x <- formatInput(remindmif_path, magpiemif_path)
+    x <- formatInput(remindmif_path, magpiemif_path, blackmagicc_dir)
   }
 }
 \author{

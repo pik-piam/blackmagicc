@@ -19,7 +19,7 @@
 #'
 #' @examples
 #'   \dontrun{
-#'     x <- formatInput(remindmif_path, magpiemif_path)
+#'     x <- formatInput(remindmif_path, magpiemif_path, blackmagicc_dir)
 #'   }
 
 formatInput <- function(remindmif_path, magpiemif_path, blackmagicc_dir = NULL) {

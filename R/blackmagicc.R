@@ -51,7 +51,7 @@ blackmagicc <- function(dir = ".", remind_name = NULL, append = FALSE, save_MAGI
         if (!dir.exists(blackmagicc_dir)) {
             dir.create(blackmagicc_dir)
         } else {
-            message("These scenarios already exist in the blackmagicc intermediates folder, and will be replaced")
+            message("A blackmagicc directory already exists; the data inside may be overwritten")
         }
     }
 
