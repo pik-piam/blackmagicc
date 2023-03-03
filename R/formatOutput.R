@@ -8,7 +8,7 @@
 #' @return a data.frame containing all the emissions scenarios' MAGICC7 warming pathways
 #'
 #' @importFrom readr read_table
-#' @importFrom dplyr %>% select mutate rename filter
+#' @importFrom dplyr %>% select mutate rename filter pull
 #' @importFrom tidyr separate
 #' @importFrom stringr str_remove
 #' @importFrom purrr map reduce
@@ -48,10 +48,18 @@ formatOutput <- function(rawOutput_dir, yearsToKeep) {
     #   ! MAGICC does strange things in the last year of the run
     #   ! so we recommend running 5 years more than needed and
     #   ! cutting the output to get sensible results
+    # For visualization purposes, we replicate the last usable year
+    # from MAGICC for this period, as otherwise y2100 is NA and our plots
+    # break.
+
+    replicatedLastYear <- out %>%
+        filter(.data$Year == (max(.data$Year) - 6)) %>%
+        pull(.data$GLOBAL)
+
     out <- out %>%
-        mutate(GLOBAL = ifelse(.data$Year < (max(.data$Year) - 5),
-                               .data$GLOBAL,
-                               NA))
+        mutate(GLOBAL = ifelse(.data$Year > (max(.data$Year) - 5),
+                               replicatedLastYear,
+                               .data$GLOBAL))
 
     # Format for .mif
     out <- out %>%
