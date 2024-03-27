@@ -55,8 +55,10 @@ blackmagicc <- function(dir = ".", remind_name = NULL, append = FALSE, save_MAGI
         }
     }
 
-    tmpdir <- withr::local_tempdir()
-    untar("/p/projects/magpie/magicc-v7.5.3.tgz", exdir = tmpdir)
+    # tmpdir <- withr::local_tempdir()
+    # untar("/p/projects/magpie/magicc-v7.5.3.tgz", exdir = tmpdir)
+
+    tmpdir <- "/home/crawford/dev_blackmagicc/magicc"
 
     if (is.null(remind_name)) {
         remind_name <- scenarioConfig[["magicc_emis_scen"]]
