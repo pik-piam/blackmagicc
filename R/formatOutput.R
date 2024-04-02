@@ -45,7 +45,15 @@ formatOutput <- function(rawOutput_dir, yearsToKeep) {
             VARIABLE == "DAT_CO2_CONC.OUT" ~ "AR6 climate diagnostics|Atmospheric Concentrations|CO2|MAGICCv7.5.3|Deterministic",
             VARIABLE == "DAT_SURFACE_TEMP.OUT" ~ "AR6 climate diagnostics|Surface Temperature (GSAT)|MAGICCv7.5.3|Deterministic",
             VARIABLE == "DAT_TOTAL_ANTHRO_RF.OUT" ~ "AR6 climate diagnostics|Effective Radiative Forcing|Basket|Anthropogenic|MAGICCv7.5.3|Deterministic",
-            TRUE ~ VARIABLE # Default case to handle any other values
+            TRUE ~ VARIABLE
+        ))
+
+    out <- out %>%
+        mutate(UNIT = case_when(
+            VARIABLE == "AR6 climate diagnostics|Atmospheric Concentrations|CO2|MAGICCv7.5.3|Deterministic" ~ "ppm",
+            VARIABLE == "AR6 climate diagnostics|Surface Temperature (GSAT)|MAGICCv7.5.3|Deterministic" ~ "C",
+            VARIABLE == "AR6 climate diagnostics|Effective Radiative Forcing|Basket|Anthropogenic|MAGICCv7.5.3|Deterministic" ~ "W/m^2",
+            TRUE ~ UNIT
         ))
 
     if (length(unique(out$REMIND)) != 1) {
@@ -76,7 +84,7 @@ formatOutput <- function(rawOutput_dir, yearsToKeep) {
                Scenario = .data$MAgPIE,
                Region = "GLO",
                Variable = .data$VARIABLE,
-               Unit = "C") %>%
+               Unit = .data$UNIT) %>%
         rename(Value = .data$GLOBAL) %>%
         filter(.data$Year %in% yearsToKeep) %>%
         select(.data$Model, .data$Scenario, .data$Variable, .data$Unit, .data$Year, .data$Value) %>%

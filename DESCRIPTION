@@ -1,7 +1,7 @@
 Package: blackmagicc
 Type: Package
 Title: MAgPIE-MAGICC Integration
-Version: 0.6.3
+Version: 0.6.4
 Date: 2024-04-02
 Authors@R: 
     person("Michael", "Crawford", role = c("cre", "aut"), email = "crawford@pik-potsdam.de")
