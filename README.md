@@ -1,8 +1,8 @@
 # MAgPIE-MAGICC Integration
 
-R package **blackmagicc**, version **0.6.2**
+R package **blackmagicc**, version **0.6.3**
 
-[![CRAN status](https://www.r-pkg.org/badges/version/blackmagicc)](https://cran.r-project.org/package=blackmagicc)  [![R build status](https://github.com/mscrawford/blackmagicc/workflows/check/badge.svg)](https://github.com/mscrawford/blackmagicc/actions) [![codecov](https://codecov.io/gh/mscrawford/blackmagicc/branch/master/graph/badge.svg)](https://app.codecov.io/gh/mscrawford/blackmagicc) [![r-universe](https://pik-piam.r-universe.dev/badges/blackmagicc)](https://pik-piam.r-universe.dev/builds)
+[![CRAN status](https://www.r-pkg.org/badges/version/blackmagicc)](https://cran.r-project.org/package=blackmagicc)  [![R build status](https://github.com/pik-piam/blackmagicc/workflows/check/badge.svg)](https://github.com/pik-piam/blackmagicc/actions) [![codecov](https://codecov.io/gh/pik-piam/blackmagicc/branch/master/graph/badge.svg)](https://app.codecov.io/gh/pik-piam/blackmagicc) [![r-universe](https://pik-piam.r-universe.dev/badges/blackmagicc)](https://pik-piam.r-universe.dev/builds)
 
 ## Purpose and Functionality
 
@@ -38,7 +38,7 @@ In case of questions / problems please contact Michael Crawford <crawford@pik-po
 
 To cite package **blackmagicc** in publications use:
 
-Crawford M (2024). _blackmagicc: MAgPIE-MAGICC Integration_. R package version 0.6.2.
+Crawford M (2024). _blackmagicc: MAgPIE-MAGICC Integration_. R package version 0.6.3.
 
 A BibTeX entry for LaTeX users is
 
@@ -47,6 +47,6 @@ A BibTeX entry for LaTeX users is
   title = {blackmagicc: MAgPIE-MAGICC Integration},
   author = {Michael Crawford},
   year = {2024},
-  note = {R package version 0.6.2},
+  note = {R package version 0.6.3},
 }
 ```

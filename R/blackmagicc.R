@@ -111,7 +111,8 @@ blackmagicc <- function(dir = ".", remind_name = NULL, append = FALSE, save_MAGI
 
     if (append) {
 
-        oldWarmingVariables <- str_detect(getItems(originalReport, dim = 3), getItems(warmingOutput, dim = 3.3))
+        oldWarmingVariables <- Map(warmingOutput, f = function(.x) grepl(pattern = .x, x = originalReport, fixed = TRUE))
+        oldWarmingVariables <- Reduce(oldWarmingVariables, f = `|`)
         if (any(oldWarmingVariables)) {
             message("Global Surface Temperature was already found in your report.mif, and will be replaced")
             originalReport <- originalReport[, , !oldWarmingVariables]
