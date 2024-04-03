@@ -2,8 +2,8 @@ cff-version: 1.2.0
 message: If you use this software, please cite it using the metadata from this file.
 type: software
 title: 'blackmagicc: MAgPIE-MAGICC Integration'
-version: 0.6.4
-date-released: '2024-04-02'
+version: 0.6.5
+date-released: '2024-04-03'
 abstract: Enables MAgPIE runs to project global surface area temperatures with MAGICC,
   using reference REMIND scenarios to represent emissions from the energy sector.
 authors:

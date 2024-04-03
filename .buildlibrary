@@ -4,5 +4,5 @@ AcceptedWarnings:
 - 'Warning: namespace ''.*'' is not available and has been replaced'
 AcceptedNotes: unable to verify current time
 allowLinterWarnings: yes
-ValidationKey: '1268160'
+ValidationKey: '1288040'
 enforceVersionUpdate: no

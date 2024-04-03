@@ -44,16 +44,14 @@ formatOutput <- function(rawOutput_dir, yearsToKeep) {
         mutate(VARIABLE = case_when(
             VARIABLE == "DAT_CO2_CONC.OUT" ~ "AR6 climate diagnostics|Atmospheric Concentrations|CO2|MAGICCv7.5.3|Deterministic",
             VARIABLE == "DAT_SURFACE_TEMP.OUT" ~ "AR6 climate diagnostics|Surface Temperature (GSAT)|MAGICCv7.5.3|Deterministic",
-            VARIABLE == "DAT_TOTAL_ANTHRO_RF.OUT" ~ "AR6 climate diagnostics|Effective Radiative Forcing|Basket|Anthropogenic|MAGICCv7.5.3|Deterministic",
-            TRUE ~ VARIABLE
+            VARIABLE == "DAT_TOTAL_ANTHRO_RF.OUT" ~ "AR6 climate diagnostics|Effective Radiative Forcing|Basket|Anthropogenic|MAGICCv7.5.3|Deterministic"
         ))
 
     out <- out %>%
         mutate(UNIT = case_when(
             VARIABLE == "AR6 climate diagnostics|Atmospheric Concentrations|CO2|MAGICCv7.5.3|Deterministic" ~ "ppm",
             VARIABLE == "AR6 climate diagnostics|Surface Temperature (GSAT)|MAGICCv7.5.3|Deterministic" ~ "C",
-            VARIABLE == "AR6 climate diagnostics|Effective Radiative Forcing|Basket|Anthropogenic|MAGICCv7.5.3|Deterministic" ~ "W/m^2",
-            TRUE ~ UNIT
+            VARIABLE == "AR6 climate diagnostics|Effective Radiative Forcing|Basket|Anthropogenic|MAGICCv7.5.3|Deterministic" ~ "W/m^2"
         ))
 
     if (length(unique(out$REMIND)) != 1) {
