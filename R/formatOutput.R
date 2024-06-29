@@ -8,8 +8,8 @@
 #' @return a data.frame containing all the emissions scenarios' MAGICC7 warming pathways
 #'
 #' @importFrom readr read_table
-#' @importFrom dplyr %>% select mutate rename filter pull case_when
-#' @importFrom tidyr separate
+#' @importFrom dplyr %>% select mutate rename filter pull case_when bind_rows group_by arrange 
+#' @importFrom tidyr separate pivot_wider
 #' @importFrom stringr str_remove
 #' @importFrom purrr map reduce
 #' @importFrom rlang .data

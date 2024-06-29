@@ -1,8 +1,8 @@
 Package: blackmagicc
 Type: Package
 Title: MAgPIE-MAGICC Integration
-Version: 0.6.6
-Date: 2024-05-06
+Version: 0.7.0
+Date: 2024-06-29
 Authors@R: 
     person("Michael", "Crawford", role = c("cre", "aut"), email = "crawford@pik-potsdam.de")
 Description: Enables MAgPIE runs to project global surface area temperatures with MAGICC, using reference REMIND scenarios to represent emissions from the energy sector.
