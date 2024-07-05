@@ -29,9 +29,9 @@ formatInput <- function(remindmifPath, magpiemifPath, blackmagiccDir = NULL) {
   # Emi|CH4|+|Agriculture
   remindEmissions <- c(
     "Emi|BC",
-    "Emi|C2F6",
-    "Emi|C6F14",
-    "Emi|CF4",
+    # "Emi|C2F6",
+    # "Emi|C6F14",
+    # "Emi|CF4",
     "Emi|CH4|+|Energy Supply",
     "Emi|CH4|+|Extraction",
     "Emi|CH4|+|Waste",
@@ -41,7 +41,7 @@ formatInput <- function(remindmifPath, magpiemifPath, blackmagiccDir = NULL) {
     "Emi|CO2|+|Energy",
     "Emi|CO2|+|Industrial Processes",
     "Emi|CO2|+|non-BECCS CDR",
-    "Emi|HFC",
+    # "Emi|HFC",
     "Emi|N2O|+|Energy Supply",
     "Emi|N2O|+|Industry",
     "Emi|N2O|+|Land-Use Change",
@@ -50,8 +50,8 @@ formatInput <- function(remindmifPath, magpiemifPath, blackmagiccDir = NULL) {
     "Emi|NH3",
     "Emi|NOX",
     "Emi|OC",
-    "Emi|PFC",
-    "Emi|SF6",
+    # "Emi|PFC",
+    # "Emi|SF6",
     "Emi|SO2",
     "Emi|VOC"
   )
@@ -159,11 +159,11 @@ formatInput <- function(remindmifPath, magpiemifPath, blackmagiccDir = NULL) {
 
   # Write IAMC compatible .csv file
   if (!is.null(blackmagiccDir)) {
-    iamcCSVDir <- file.path(blackmagiccDir, "IAMC_csvs")
-    dir.create(iamcCSVDir, showWarnings = FALSE)
+    iamcXlsxDir <- file.path(blackmagiccDir, "IAMC_csvs")
+    dir.create(iamcXlsxDir, showWarnings = FALSE)
 
-    iamcCSV <- quitte::as.quitte(allData)
-    quitte::write.IAMCcsv(iamcCSV, path = file.path(iamcCSVDir, paste0(scenario, ".csv")))
+    iamcXlsx <- quitte::as.quitte(allData)
+    quitte::write.IAMCxlsx(iamcXlsx, path = file.path(iamcXlsxDir, paste0(scenario, ".csv")))
   }
 
   #

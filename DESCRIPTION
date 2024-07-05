@@ -1,8 +1,8 @@
 Type: Package
 Package: blackmagicc
 Title: MAgPIE-MAGICC Integration
-Version: 0.7.0
-Date: 2024-06-29
+Version: 0.7.1
+Date: 2024-07-05
 Authors@R: 
     person("Michael", "Crawford", , "crawford@pik-potsdam.de", role = c("cre", "aut"))
 Description: Enables MAgPIE runs to project global surface area
