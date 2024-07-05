@@ -56,7 +56,7 @@ blackmagicc <- function(dir = ".", remind_name = NULL, append = FALSE, save_MAGI
     }
 
     tmpdir <- withr::local_tempdir()
-    untar("/p/projects/magpie/magicc-v7.5.3.tgz", exdir = tmpdir)
+    untar("/p/projects/magpie/magicc-v7.5.3-fb.tgz", exdir = tmpdir)
 
     if (is.null(remind_name)) {
         remind_name <- scenarioConfig[["magicc_emis_scen"]]
@@ -76,17 +76,20 @@ blackmagicc <- function(dir = ".", remind_name = NULL, append = FALSE, save_MAGI
 
     remind_defaultDir <- file.path(tmpdir, "default_remind_datasets")
     remind_potentialPaths <- c(file.path(dir, paste0(remind_name, ".mif")),
+                               file.path(".", paste0(remind_name, ".mif")),
+                               file.path(dir, "..", "..", paste0(remind_name, ".mif")),
+                               file.path(dir, "..", "..", "..", paste0(remind_name, ".mif")),
                                file.path(remind_defaultDir, paste0(remind_name, ".mif")))
 
     remindmif_path <- remind_potentialPaths[file.exists(remind_potentialPaths)] %>% first()
 
-    if (is.null(remindmif_path)) {
+    if (is.null(remindmif_path) || is.na(remindmif_path)) {
         stop("REMIND emissions report.mif was not found.")
     }
 
     magpiemif_path <- file.path(dir, "report.mif")
 
-    if (is.null(magpiemif_path)) {
+    if (is.null(magpiemif_path) || is.na(magpiemif_path)) {
         stop("MAgPIE scenario report.mif was not found in the output directory")
     }
 
@@ -110,7 +113,8 @@ blackmagicc <- function(dir = ".", remind_name = NULL, append = FALSE, save_MAGI
 
     if (append) {
 
-        oldWarmingVariables <- str_detect(getItems(originalReport, dim = 3), getItems(warmingOutput, dim = 3.3))
+        oldWarmingVariables <- Map(warmingOutput, f = function(.x) grepl(pattern = .x, x = getItems(originalReport, dim = 3.3), fixed = TRUE))
+        oldWarmingVariables <- Reduce(oldWarmingVariables, f = `|`)
         if (any(oldWarmingVariables)) {
             message("Global Surface Temperature was already found in your report.mif, and will be replaced")
             originalReport <- originalReport[, , !oldWarmingVariables]

@@ -1,31 +1,33 @@
-Package: blackmagicc
 Type: Package
+Package: blackmagicc
 Title: MAgPIE-MAGICC Integration
-Version: 0.5.0
-Date: 2023-03-03
+Version: 0.7.0
+Date: 2024-06-29
 Authors@R: 
-    person("Michael", "Crawford", role = c("cre", "aut"), email = "crawford@pik-potsdam.de")
-Description: Enables MAgPIE runs to project global surface area temperatures with MAGICC, using reference REMIND scenarios to represent emissions from the energy sector.
+    person("Michael", "Crawford", , "crawford@pik-potsdam.de", role = c("cre", "aut"))
+Description: Enables MAgPIE runs to project global surface area
+    temperatures with MAGICC, using reference REMIND scenarios to
+    represent emissions from the energy sector.
+License: BSD_2_clause + file LICENSE
+URL:
+BugReports: https://github.com/pik-piam/blackmagicc/issues
 Depends:
-    R(>= 3.6.3.0)
+    R (>= 3.6.3.0)
 Imports:
-    withr,
-    utils,
-    rlang,
     dplyr,
+    gms,
+    magclass,
     purrr,
+    quitte,
+    readr,
+    rlang,
     stringr,
     tidyr,
-    readr,
-    magclass,
-    gms,
-    quitte
+    utils,
+    withr
 Suggests:
     covr,
     testthat
-URL:
-BugReports: https://github.com/pik-piam/blackmagicc/issues
-License: BSD_2_clause + file LICENSE
-LazyData: no
 Encoding: UTF-8
-RoxygenNote: 7.2.3
+LazyData: no
+RoxygenNote: 7.3.1

@@ -56,8 +56,12 @@ runMAGICC <- function(emissions_fn, base_path) {
     })
 
     # Rename and then move the output file from magic-v7.5.3c/out to raw/output
-    file.copy(from = file.path(magiccOut_dir, "DAT_SURFACE_TEMP.OUT"),
-              to   = file.path(rawOutput_dir, paste0(emissions_fn, ".out")))
+    files <- list.files(magiccOut_dir, full.names = TRUE)
+
+    lapply(files, function(file_path) {
+        new_file_path <- file.path(rawOutput_dir, paste0(emissions_fn, "__", basename(file_path)))
+        file.copy(from = file_path, to = new_file_path)
+    }) 
 
     # Delete the various intermediate files within the magicc directories
     file.remove(file.path(magiccRun_dir, paste0(emissions_fn, ".SCEN7")))
@@ -66,5 +70,4 @@ runMAGICC <- function(emissions_fn, base_path) {
 
     # TODO As of now the PARAMETERS output file is not requested, though it can be useful for debugging. Future
     # iterations may want to include these files optionally.
-
 }

@@ -8,8 +8,8 @@
 #' @return a data.frame containing all the emissions scenarios' MAGICC7 warming pathways
 #'
 #' @importFrom readr read_table
-#' @importFrom dplyr %>% select mutate rename filter pull
-#' @importFrom tidyr separate
+#' @importFrom dplyr %>% select mutate rename filter pull case_when bind_rows group_by arrange 
+#' @importFrom tidyr separate pivot_wider
 #' @importFrom stringr str_remove
 #' @importFrom purrr map reduce
 #' @importFrom rlang .data
@@ -29,7 +29,7 @@ formatOutput <- function(rawOutput_dir, yearsToKeep) {
         .d <- .d %>%
             select(.data$YEARS, .data$GLOBAL) %>%
             mutate(scenario = str_remove(string = fn, pattern = ".out")) %>%
-            separate(col = .data$scenario, into = c("REMIND", "MAgPIE"), sep = "__", remove = TRUE)
+            separate(col = .data$scenario, into = c("REMIND", "MAgPIE", "VARIABLE"), sep = "__", remove = TRUE)
 
         return(.d)
     }
@@ -37,8 +37,22 @@ formatOutput <- function(rawOutput_dir, yearsToKeep) {
     out <- out_files %>%
         map(.f = ~ .read_output(.x, rawOutput_dir)) %>%
         reduce(.f = bind_rows) %>%
-        select(.data$REMIND, .data$MAgPIE, .data$YEARS, .data$GLOBAL) %>%
+        select(.data$REMIND, .data$MAgPIE, .data$VARIABLE, .data$YEARS, .data$GLOBAL) %>%
         rename(Year = .data$YEARS)
+
+    out <- out %>%
+        mutate(VARIABLE = case_when(
+            VARIABLE == "DAT_CO2_CONC.OUT" ~ "AR6 climate diagnostics|Atmospheric Concentrations|CO2|MAGICCv7.5.3|Deterministic",
+            VARIABLE == "DAT_SURFACE_TEMP.OUT" ~ "AR6 climate diagnostics|Surface Temperature (GSAT)|MAGICCv7.5.3|Deterministic",
+            VARIABLE == "DAT_TOTAL_ANTHRO_RF.OUT" ~ "AR6 climate diagnostics|Effective Radiative Forcing|Basket|Anthropogenic|MAGICCv7.5.3|Deterministic"
+        ))
+
+    out <- out %>%
+        mutate(UNIT = case_when(
+            VARIABLE == "AR6 climate diagnostics|Atmospheric Concentrations|CO2|MAGICCv7.5.3|Deterministic" ~ "ppm",
+            VARIABLE == "AR6 climate diagnostics|Surface Temperature (GSAT)|MAGICCv7.5.3|Deterministic" ~ "C",
+            VARIABLE == "AR6 climate diagnostics|Effective Radiative Forcing|Basket|Anthropogenic|MAGICCv7.5.3|Deterministic" ~ "W/m^2"
+        ))
 
     if (length(unique(out$REMIND)) != 1) {
         stop("At this time, blackmagicc is configured to only process one REMIND scenario per MAgPIE scenario.")
@@ -53,6 +67,7 @@ formatOutput <- function(rawOutput_dir, yearsToKeep) {
     # break.
 
     replicatedLastYear <- out %>%
+        group_by(.data$VARIABLE) %>%
         filter(.data$Year == (max(.data$Year) - 6)) %>%
         pull(.data$GLOBAL)
 
@@ -66,8 +81,8 @@ formatOutput <- function(rawOutput_dir, yearsToKeep) {
         mutate(Model = "MAgPIE",
                Scenario = .data$MAgPIE,
                Region = "GLO",
-               Variable = "Global Surface Temperature",
-               Unit = "C") %>%
+               Variable = .data$VARIABLE,
+               Unit = .data$UNIT) %>%
         rename(Value = .data$GLOBAL) %>%
         filter(.data$Year %in% yearsToKeep) %>%
         select(.data$Model, .data$Scenario, .data$Variable, .data$Unit, .data$Year, .data$Value) %>%

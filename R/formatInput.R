@@ -3,178 +3,121 @@
 #' necessary to run MAGICC7
 #' @author Michael Crawford
 #'
-#' @param remindmif_path file path for the reference REMIND emissions
-#' @param magpiemif_path file path for the MAgPIE emissions
-#' @param blackmagicc_dir directory to save intermediate inputs used by MAGICC
+#' @param remindmifPath file path for the reference REMIND emissions
+#' @param magpiemifPath file path for the MAgPIE emissions
+#' @param blackmagiccDir directory to save intermediate inputs used by MAGICC
 #'
 #' @return a composite data.frame containing the scenario's MAgPIE emissions and reference REMIND emissions
 #'
-#' @importFrom utils read.csv
-#' @importFrom dplyr %>% filter select mutate contains group_by ungroup starts_with rename bind_rows summarise arrange
-#' @importFrom stringr str_detect str_count str_extract str_replace str_split str_remove
-#' @importFrom tidyr as_tibble pivot_longer unnest pivot_wider
-#' @importFrom purrr pmap
+#' @importFrom dplyr %>%
 #' @importFrom rlang .data
-#' @importFrom utils write.csv
-#'
 #' @examples
 #'   \dontrun{
-#'     x <- formatInput(remindmif_path, magpiemif_path, blackmagicc_dir)
+#'     x <- formatInput(remindmifPath, magpiemifPath, blackmagiccDir)
 #'   }
 
-formatInput <- function(remindmif_path, magpiemif_path, blackmagicc_dir = NULL) {
+formatInput <- function(remindmifPath, magpiemifPath, blackmagiccDir = NULL) {
 
   #
-  # Remind emissions
+  # REMIND emissions
   #
 
-  remind <- read.csv(remindmif_path, header = TRUE, sep = ";", stringsAsFactors = FALSE)
+  # Emissions from REMIND, omitting these MAgPIE emissions, to be added back in from the magpie .mif
+  # Emi|CH4|Land-Use Change|+|Peatland
+  # Emi|N2O|+|Agriculture
+  # Emi|CO2|+|Land-Use Change
+  # Emi|CH4|+|Agriculture
+  remindEmissions <- c(
+    "Emi|BC",
+    "Emi|C2F6",
+    "Emi|C6F14",
+    "Emi|CF4",
+    "Emi|CH4|+|Energy Supply",
+    "Emi|CH4|+|Extraction",
+    "Emi|CH4|+|Waste",
+    "Emi|CH4|Land-Use Change|+|Forest Burning",
+    "Emi|CH4|Land-Use Change|+|Savanna Burning",
+    "Emi|CO",
+    "Emi|CO2|+|Energy",
+    "Emi|CO2|+|Industrial Processes",
+    "Emi|CO2|+|non-BECCS CDR",
+    "Emi|HFC",
+    "Emi|N2O|+|Energy Supply",
+    "Emi|N2O|+|Industry",
+    "Emi|N2O|+|Land-Use Change",
+    "Emi|N2O|+|Transport",
+    "Emi|N2O|+|Waste",
+    "Emi|NH3",
+    "Emi|NOX",
+    "Emi|OC",
+    "Emi|PFC",
+    "Emi|SF6",
+    "Emi|SO2",
+    "Emi|VOC"
+  )
 
-  # Filter for only World-level emissions
-  remind <- remind %>%
-    filter(str_detect(string = .data$Variable, pattern = "Emi\\|"),
-           .data$Region == "World") %>%
-    as_tibble()
+  remind <- utils::read.csv(remindmifPath, header = TRUE, sep = ";", stringsAsFactors = FALSE) %>%
+    tidyr::as_tibble()
 
-  # Remove all emissions derived from MAgPIE
-  remindEmissions_fromMagpie <- c("Emi|CO2|Land-Use Change",
-                                  "Emi|CH4|Land Use",
-                                  "Emi|N2O|Land Use")
-
-  remind <- remind %>%
-    filter(!.data$Variable %in% remindEmissions_fromMagpie) %>%
-    mutate(Model = "REMIND")
-
-  # Select only top-level emissions, or HFCs, and no emission-equivalents
-  remind <- remind %>%
-    filter(str_count(string = .data$Variable, pattern = "\\|") == 1 |
-             str_detect(string = .data$Variable, pattern = "Emi\\|HFC\\|HFC")) %>%
-    filter(str_detect(string = .data$Unit, pattern = "equiv", negate = TRUE))
-
-  # Simplify Variable's reporting name to reflect the overall Unit
-  remind <- remind %>%
-    mutate(Variable = str_extract(string = .data$Unit, pattern = "(?<=\\s)(.+)(?=/)"))
-
-  # Reformat to tibble-style
-  remind <- remind %>%
-    select(-.data$X) %>% # There is additional column called "X"
-    pivot_longer(cols = contains("X"),
-                 names_to = "Year",
-                 values_to = "Value") %>%
-    mutate(Year = str_remove(.data$Year, "X")) %>%
-    mutate(Year = as.numeric(.data$Year),
-           Value = as.numeric(.data$Value))
-
-  .convertRemindUnits <- function(.variable, .unit, .value) {
-
-    if (.unit == "Mt CO2/yr") {
-      .variable <- "CO2I"
-      .unit     <- "Gt C/yr"
-      .value    <- .value * (12 / 44) * 0.001 # Convert to CO2 to C and Mt to Gt
-    } else if (.unit == "Mt NOX/yr") {
-      .unit  <- "Mt N/yr"
-      .value <- .value * (14 / 46)
-    } else if (.unit == "Mt NH3/yr") {
-      .unit  <- "Mt N/yr"
-      .value <- .value * (14 / 17)
-    } else if (.unit == "kt N2O/yr") {
-      .unit  <- "Mt N2ON/yr"
-      .value <- .value * (28 / 44) * 0.0001 # Covert kt to Mt
-    } else if (str_detect(string = .unit, pattern = "HFC")) {
-      .variable <- toupper(.variable)
-      .variable <- str_remove(.variable, "-")
-
-      .unit <- .unit %>%
-        str_replace(pattern = "/", replacement = " ") %>%
-        str_split(pattern = " ") %>%
-        unlist()
-
-      .unit[2] <- toupper(.unit[2])
-      .unit[2] <- str_remove(.unit[2], "-")
-
-      .unit <- paste0(.unit[1], " ", .unit[2], "/", .unit[3])
-    }
-    return(data.frame(.variable, .unit, .value))
-
+  # Check if all required REMIND emissions are present
+  missingRemindEmissions <- setdiff(remindEmissions, unique(remind$Variable))
+  if (length(missingRemindEmissions) > 0) {
+    stop(paste("The following expected REMIND emissions are missing from the dataset:\n",
+               paste(missingRemindEmissions, collapse = "\n")))
   }
 
   remind <- remind %>%
-    ungroup() %>%
-    mutate(vars = pmap(.l = list(.data$Variable, .data$Unit, .data$Value),
-                       .f = ~ .convertRemindUnits(..1, ..2, ..3))) %>%
-    select(-.data$Variable, -.data$Unit, -.data$Value) %>%
-    unnest(.data$vars) %>%
-    mutate(.variable = as.character(.data$.variable),
-           .unit     = as.character(.data$.unit)) %>%
-    rename(Variable = .data$.variable,
-           Unit     = .data$.unit,
-           Value    = .data$.value)
+    dplyr::filter(.data$Variable %in% remindEmissions) %>%
+    dplyr::filter(.data$Region == "World")
 
-  #
-  # MAgPIE emissions
-  #
-
-  magpie_emissionCategories <- c("Emissions|CO2|Land|+|Land-use Change",
-                                 "Emissions|N2O|Land|Agriculture|+|Animal Waste Management",
-                                 "Emissions|N2O|Land|Agriculture|Agricultural Soils|+|Inorganic Fertilizers",
-                                 "Emissions|N2O|Land|Agriculture|Agricultural Soils|+|Manure applied to Croplands",
-                                 "Emissions|N2O|Land|Agriculture|Agricultural Soils|+|Decay of Crop Residues",
-                                 "Emissions|N2O|Land|Agriculture|Agricultural Soils|+|Soil Organic Matter Loss",
-                                 "Emissions|N2O|Land|Agriculture|Agricultural Soils|+|Pasture",
-                                 "Emissions|CH4|Land|Agriculture|+|Rice",
-                                 "Emissions|CH4|Land|Agriculture|+|Animal waste management",
-                                 "Emissions|CH4|Land|Agriculture|+|Enteric fermentation")
-
-  magpie <- read.csv(magpiemif_path, header = TRUE, sep = ";", stringsAsFactors = FALSE) %>%
-    filter(.data$Variable %in% magpie_emissionCategories,
-           .data$Region == "World") %>%
-    as_tibble()
+  remind <- remind %>%
+    dplyr::mutate(Model = "REMIND") %>%
+    dplyr::mutate(Variable = stringr::str_replace(.data$Variable, "^Emi\\|", "Emissions|"))
 
   # Reformat to tibble-style
-  magpie <- magpie %>%
-    select(-.data$X) %>% # There is additional column called "X"
-    pivot_longer(cols = starts_with("X"),
-                 names_to = "Year",
-                 values_to = "Value")
+  remind <- remind %>%
+    dplyr::select(-.data$X) %>% # There is an additional column called "X"
+    tidyr::pivot_longer(cols = dplyr::contains("X"), names_to = "Year", values_to = "Value") %>%
+    dplyr::mutate(Year = stringr::str_remove(.data$Year, "X")) %>%
+    dplyr::mutate(Year = as.numeric(.data$Year),
+                  Value = as.numeric(.data$Value))
 
-  magpie <- magpie %>%
-    mutate(Year = str_remove(string = .data$Year, pattern = "X")) %>%
-    filter(.data$Year %in% remind$Year) %>%
-    mutate(Year = as.numeric(.data$Year),
-           Value = as.numeric(.data$Value))
+  # Convert kt N2O/yr to Mt N2O/yr
+  remind <- remind %>%
+    dplyr::mutate(Value = dplyr::if_else(.data$Unit == "kt N2O/yr", .data$Value / 1000, .data$Value),
+                  Unit = dplyr::if_else(.data$Unit == "kt N2O/yr", "Mt N2O/yr", .data$Unit))
 
-  # Sum across emission types
-  magpie <- magpie %>%
-    group_by(.data$Model, .data$Scenario, .data$Region, .data$Unit, .data$Year) %>%
-    summarise(Value = sum(.data$Value))
+  #
+  # New MAgPIE emissions
+  #
 
-  # Re-integrate top-level emission variable from the Unit for MAGICC's read-in
-  magpie <- magpie %>%
-    mutate(Variable = str_extract(string = .data$Unit, pattern = "(?<=\\s)(.+)(?=/)"))
+  magpieEmissionCategories <- c("Emissions|CO2|Land|+|Land-use Change",
+                                "Emissions|N2O|Land|+|Agriculture",
+                                "Emissions|CH4|Land|+|Agriculture",
+                                "Emissions|CH4|Land|+|Peatland")
 
-  .convertMAgPIEUnits <- function(.variable, .unit, .value) {
-    if (.unit == "Mt CO2/yr") {
-      .variable <- "CO2B"
-      .unit     <- "Gt C/yr"
-      .value    <- .value * (12 / 44) * 0.001 # Convert to CO2 to C and Mt to Gt
-    } else if (.unit == "Mt N2O/yr") {
-      .unit  <- "Mt N2ON/yr"
-      .value <- .value * (28 / 44)
-    }
-    return(data.frame(.variable, .unit, .value))
+  magpie <- utils::read.csv(magpiemifPath, header = TRUE, sep = ";", stringsAsFactors = FALSE) %>%
+    tidyr::as_tibble()
+
+  # Check if all required MAgPIE emissions are present
+  missingMagpieEmissions <- setdiff(magpieEmissionCategories, unique(magpie$Variable))
+  if (length(missingMagpieEmissions) > 0) {
+    stop(paste("The following MAgPIE emissions are missing from the dataset:\n",
+               paste(missingMagpieEmissions, collapse = "\n")))
   }
 
   magpie <- magpie %>%
-    ungroup() %>%
-    mutate(vars = pmap(.l = list(.data$Variable, .data$Unit, .data$Value),
-                       .f = ~ .convertMAgPIEUnits(..1, ..2, ..3))) %>%
-    select(-.data$Variable, -.data$Unit, -.data$Value) %>%
-    unnest(.data$vars) %>%
-    mutate(.variable = as.character(.data$.variable),
-           .unit     = as.character(.data$.unit)) %>%
-    rename(Variable = .data$.variable,
-           Unit     = .data$.unit,
-           Value    = .data$.value)
+    dplyr::filter(.data$Variable %in% magpieEmissionCategories,
+                  .data$Region == "World")
+
+  # Reformat to tibble-style
+  magpie <- magpie %>%
+    dplyr::select(-.data$X) %>% # There is an additional column called "X"
+    tidyr::pivot_longer(cols = dplyr::starts_with("X"), names_to = "Year", values_to = "Value") %>%
+    dplyr::mutate(Year = stringr::str_remove(string = .data$Year, pattern = "X")) %>%
+    dplyr::filter(.data$Year %in% remind$Year) %>%
+    dplyr::mutate(Year = as.numeric(.data$Year),
+                  Value = as.numeric(.data$Value))
 
   #
   # Integrate the REMIND emissions and the new MAgPIE emissions
@@ -185,39 +128,101 @@ formatInput <- function(remindmif_path, magpiemif_path, blackmagicc_dir = NULL) 
               This function should only be called on original reports, not merged reports.")
   }
 
-  scenario <- paste0(unique(remind$Scenario), "__", unique(magpie$Scenario))
-
-  all <- bind_rows(remind, magpie) %>%
-    filter(.data$Year %in% unique(magpie$Year))
+  allData <- dplyr::bind_rows(remind, magpie) %>%
+    dplyr::filter(.data$Year %in% unique(magpie$Year))
 
   # Ensure that the MAGICC data is used during the historical period, ensuring a better pattern
   # during the historical period. The end warming (i.e. year 2099) is left unaffected regardless.
-  all <- all %>% filter(.data$Year > 2014)
+  allData <- allData %>% dplyr::filter(.data$Year > 2014)
 
-  all <- all %>%
-    group_by(.data$Region, .data$Variable, .data$Unit, .data$Year) %>%
-    summarise(Value = sum(.data$Value)) %>%
-    mutate(Model = "REMIND-MAgPIE", Scenario = scenario) %>%
-    select(.data$Model, .data$Scenario, .data$Region, .data$Variable, .data$Unit, .data$Year, .data$Value) %>%
-    arrange(.data$Variable)# Order of the variables matters after the pivot!
+  scenario <- paste0(unique(remind$Scenario), "__", unique(magpie$Scenario))
 
-  if (!is.null(blackmagicc_dir)) {
+  allData <- allData %>% dplyr::mutate(Model = "REMIND-MAgPIE", Scenario = scenario)
 
-    inputCSV_dir <- file.path(blackmagicc_dir, "input_csvs")
-    dir.create(inputCSV_dir, showWarnings = FALSE)
+  nonCO2 <- allData %>%
+    dplyr::filter(!stringr::str_detect(.data$Variable, "Emissions\\|CO2")) %>%
+    dplyr::mutate(TopLevel = stringr::str_extract(.data$Variable, "^Emissions\\|[^|]+")) %>%
+    dplyr::group_by(.data$Model, .data$Scenario, .data$Region, .data$TopLevel, .data$Unit, .data$Year) %>%
+    dplyr::summarise(Value = sum(.data$Value, na.rm = TRUE)) %>%
+    dplyr::rename(Variable = .data$TopLevel)
 
-    input_mifs <- all %>%
-      group_by(.data$Model, .data$Region, .data$Scenario, .data$Variable, .data$Unit) %>%
-      pivot_wider(names_from = "Year", values_from = "Value", names_sep = " ")
+  co2 <- allData %>%
+    dplyr::filter(stringr::str_detect(.data$Variable, "Emissions\\|CO2")) %>%
+    dplyr::mutate(TopLevel = dplyr::if_else(stringr::str_detect(.data$Variable, "Land-use Change"),
+                                            "Emissions|CO2|AFOLU",
+                                            "Emissions|CO2|Energy and Industrial Processes")) %>%
+    dplyr::group_by(.data$Model, .data$Scenario, .data$Region, .data$TopLevel, .data$Unit, .data$Year) %>%
+    dplyr::summarise(Value = sum(.data$Value, na.rm = TRUE)) %>%
+    dplyr::rename(Variable = .data$TopLevel)
 
-    write.csv(x = input_mifs, file = file.path(inputCSV_dir, paste0(scenario, ".csv")), row.names = FALSE)
+  allData <- dplyr::bind_rows(co2, nonCO2)
 
+  # Write IAMC compatible .csv file
+  if (!is.null(blackmagiccDir)) {
+    iamcCSVDir <- file.path(blackmagiccDir, "IAMC_csvs")
+    dir.create(iamcCSVDir, showWarnings = FALSE)
+
+    iamcCSV <- quitte::as.quitte(allData)
+    quitte::write.IAMCcsv(iamcCSV, path = file.path(iamcCSVDir, paste0(scenario, ".csv")))
   }
 
-  all <- all %>%
-    mutate(Unit = str_replace(string = .data$Unit, pattern = " ", replacement = "_"),
-           Unit = str_replace(string = .data$Unit, pattern = "/", replacement = "_per_")) %>%
-    pivot_wider(names_from = c("Variable", "Unit"), values_from = "Value", names_sep = " ")
+  #
+  # Generate .scen file for deterministic MAGICC run
+  #
 
-  return(all)
+  allData <- allData %>%
+    dplyr::mutate(Variable = dplyr::case_when(
+      Variable == "Emissions|CO2|AFOLU" ~ "CO2B",
+      Variable == "Emissions|CO2|Energy and Industrial Processes" ~ "CO2I",
+      TRUE ~ sub("Emissions\\|", "", Variable)
+    ))
+
+  .convertUnits <- function(unit, value) {
+    if (unit == "Mt CO2/yr") {
+      unit <- "Gt C/yr"
+      value <- value * (12 / 44) * 0.001 # Convert to CO2 to C and Mt to Gt
+    } else if (unit == "Mt NOX/yr") {
+      unit <- "Mt N/yr"
+      value <- value * (14 / 46)
+    } else if (unit == "Mt NH3/yr") {
+      unit <- "Mt N/yr"
+      value <- value * (14 / 17)
+    } else if (unit == "Mt N2O/yr") {
+      unit <- "Mt N2ON/yr"
+      value <- value * (28 / 44) # N2O to N2ON, not N like NOX and NH3
+    }
+    return(data.frame(unit, value))
+  }
+
+  # Convert Units and Values to .scen compatible formats
+  allData <- allData %>%
+    dplyr::ungroup() %>%
+    dplyr::mutate(vars = purrr::map2(.x = .data$Unit, .y = .data$Value, .f = ~ .convertUnits(.x, .y))) %>%
+    dplyr::select(-.data$Unit, -.data$Value) %>%
+    tidyr::unnest(.data$vars) %>%
+    dplyr::rename(Unit = .data$unit, Value = .data$value)
+
+  allData <- allData %>%
+    dplyr::select(.data$Model, .data$Scenario, .data$Region, .data$Variable, .data$Unit, .data$Year, .data$Value) %>%
+    dplyr::arrange(.data$Variable) # Order of the variables matters after the pivot!
+
+  # Generate .scen-oriented data.frame for Zebedee
+  # After pivot to ROpenSCMRunner and IIASA formatting, this can be removed
+  if (!is.null(blackmagiccDir)) {
+    inputCsvDir <- file.path(blackmagiccDir, "input_csvs")
+    dir.create(inputCsvDir, showWarnings = FALSE)
+
+    inputMifs <- allData %>%
+      dplyr::group_by(.data$Model, .data$Region, .data$Scenario, .data$Variable, .data$Unit) %>%
+      tidyr::pivot_wider(names_from = "Year", values_from = "Value", names_sep = " ")
+
+    utils::write.csv(x = inputMifs, file = file.path(inputCsvDir, paste0(scenario, ".csv")), row.names = FALSE)
+  }
+
+  allData <- allData %>%
+    dplyr::mutate(Unit = stringr::str_replace(string = .data$Unit, pattern = " ", replacement = "_"),
+                  Unit = stringr::str_replace(string = .data$Unit, pattern = "/", replacement = "_per_")) %>%
+    tidyr::pivot_wider(names_from = c("Variable", "Unit"), values_from = "Value", names_sep = " ")
+
+  return(allData)
 }
